@@ -36,82 +36,26 @@ exports.checkAvailability = (req,res) => {
     });
 }
 
-/*
-//purchase book
-exports.purchasebook = async(req,res) => {
-    const t = await sequelize.transaction();
-    try {
-      Book.findByPk(req.params.id)
-        .then(data => {
-          if(!data) {
-              res.send({message:'Check the id again'
-          })
-          } else {
-              const purchaseItem = {
-                  userId : req.body.userId,
-                  bookId : req.body.bookId,
-                  quantity : req.body.quantity
-  
-              }
-              Purchase.create(purchaseItem)            
-              .then(item => {
-                  res.send({
-                    message : 'success',
-                    details : {
-                      purchaseId : item.id,
-                      userId: item.userId,
-                      bookId: item.bookId,
-                      quantity : item.quantity,
-                      totalPrice : data.price * item.quantity
-                    }
-                    })
-                    
-                  },{transaction :  t})
-              .catch(err => {
-                  res.status(500).send({
-                    message:
-                      err.message || "Some error occurred."
-                  });
-                })
-          }
-        });  
-        await t.commit();
-  } catch (error) {
-    await t.rollback();
-  }
-  }
 //update quantity
-exports.updateQuantity = async(req,res) => {
-  const t = await sequelize.transaction();
-  try{
-    const book = Book.findByPk(req.params.id)
-      .then(data => {
-        const qty1 = data.quantity;
-        console.log(qty1);
-        Purchase.findOne({where : {bookId :book }})
-        .then(item => {
-          const qty = item.quantity;
-          console.log(qty);
+const updateQty = async(req,res) => {
 
-          Book.update({
-            quantity : qty1 - qty},
-            {where : {bookId : req.params.id}
-          },{transcation : t});
-        })
-      })
-    await t.commit();
-  } catch(error) {
-    await t.rollback();
-  }
-    
+  Book.findOne({
+    where : {
+      bookId : req.params.id
+    }
+  }).then(book => {
+    return book.decrement('quantity',);
+  }).then(book => {
+    book.reload();
+  })
 }
-*/
+
 
 //purchase a book
 exports.purchasebook = async(req,res) => {
   const t = await sequelize.transaction();
   try {
-    Book.findByPk(req.params.id)
+    const book = Book.findByPk(req.params.id)
       .then(data => {
         if(!data) {
             res.send({message:'Check the id again'
@@ -124,12 +68,12 @@ exports.purchasebook = async(req,res) => {
                 totalprice : req.body.quantity * data.price
 
             }
-            //const price = data.price;
             const qty1 = data.quantity;
             //create purchase
             Purchase.create(purchaseItem)            
             .then(item => {
                 const qty = item.quantity;
+                //check if quantity is valid
                 if((qty1- qty) < 0 ) {
                   res.status(404).send({status:'fail',message : 'Required number of books unavailable'})
                 } else {
@@ -143,13 +87,18 @@ exports.purchasebook = async(req,res) => {
                     totalPrice : item.totalprice
                   }
                   })
-                  //update book quantity
-                  Book.update({
-                    quantity : qty1 - qty},
-                    {where : {bookId : req.params.id}
-                  },{transcation : t});
+                  //update quantity
+                  Book.findOne({
+                    where : {
+                      bookId : req.params.id
+                    }
+                  }).then(book => {
+                    return book.decrement('quantity',{by:item.quantity});
+                  }).then(book => {
+                    book.reload();
+                  })
                 }
-            },{transaction :  t})
+              },{transaction :  t})
             .catch(err => {
                 res.status(500).send({
                   message:
@@ -163,6 +112,8 @@ exports.purchasebook = async(req,res) => {
   await t.rollback();
 }
 }
+
+
 
 
 

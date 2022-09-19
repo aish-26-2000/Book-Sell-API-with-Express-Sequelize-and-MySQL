@@ -23,7 +23,11 @@ exports.findAll = (req, res) => {
   const { page, size, title } = req.query;
   var condition = title ? { title: { [Op.like]: `%${title}%` } } : null;
   const { limit, offset } = Pagination(page, size);
-  Book.findAndCountAll({ where: condition, limit, offset })
+  Book.findAndCountAll({ 
+    where: condition, 
+    limit, 
+    offset
+  })
     .then(data => {
       const response = getPagingData(data, page, limit);
       res.send(response);
