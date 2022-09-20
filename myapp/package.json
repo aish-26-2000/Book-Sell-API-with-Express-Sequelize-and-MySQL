@@ -18,5 +18,8 @@
     "nodemon": "^2.0.19",
     "sequelize": "^6.21.4",
     "sequelize-cli": "^6.4.1"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^8.5.0"
   }
 }
