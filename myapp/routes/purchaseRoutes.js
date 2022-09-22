@@ -12,7 +12,5 @@ router.get('/:id',controller.checkAvailability,authcontroller.protect);
 //purchase a book
 router.post('/:id',controller.purchasebook,authcontroller.protect);
 
-
-
 //export
 module.exports = router;
