@@ -12,19 +12,26 @@ exports.fetchBookDetails = async(_id) => {
 };
 
 //create purchase item
-exports.createItem = async(item) => { 
-    return Purchase.create(item)
+exports.createItem = async(item,t) => {
+    const create = Purchase.create(item,{ transaction: t });
+    //console.log(t);
+    return create;
 }
 
 //update quantity
-exports.update = async(_id,by) => {
-    await Book.findOne({
+exports.update = async(_id,by,t) => { 
+    const updateItem  = await Book.findOne({
         where : {
             bookId : _id
         }
     }).then(book => {
         book.decrement('quantity',{by:by});
         book.reload();
-    })
+    },{ transaction: t });  
+    //console.log(t);
+    return updateItem;
+ 
 }
+
+
 
